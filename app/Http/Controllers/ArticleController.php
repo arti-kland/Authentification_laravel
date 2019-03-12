@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 
 class ArticleController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth')->except(["show","index"]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -14,6 +20,7 @@ class ArticleController extends Controller
      */
     public function index()
     {
+
         $articles = Article::all();
 
         return view('article.index', [
@@ -28,6 +35,8 @@ class ArticleController extends Controller
      */
     public function create()
     {
+
+
         return view('article.create');
     }
 
@@ -39,15 +48,18 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
+
+
         $article = new Article;
         $article->title = $request->input('title');
         $article->content = $request->input('content');
-        /**
-         *
-         * associer ici le User
-         *
-         */
+
+//        $article['user_id'] =auth()->id();
+//        $article->user_id =auth()->id();
+
         $article->save();
+
+        return redirect('article');
     }
 
     /**
@@ -58,6 +70,7 @@ class ArticleController extends Controller
      */
     public function show(Article $article)
     {
+
         return view('article.show', [
             'article' => $article
         ]);
@@ -71,9 +84,17 @@ class ArticleController extends Controller
      */
     public function edit(Article $article)
     {
+//        abort_if($article->user_id != auth()->id(), 403);
+        if(\Gate::denies('article', $article)){
+
+            abort(403);
+
+        }
+
         return view('article.edit', [
             'article' => $article
         ]);
+
     }
 
     /**
@@ -85,12 +106,17 @@ class ArticleController extends Controller
      */
     public function update(Request $request, Article $article)
     {
+
         $article->title = $request->input('title');
         $article->content = $request->input('content');
         $article->save();
 
         return redirect(route('article.show', ['article' => $article]));
     }
+
+
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -100,6 +126,6 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article)
     {
-        //
+        $this->middleware('auth');
     }
 }
